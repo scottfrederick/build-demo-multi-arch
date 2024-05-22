@@ -33,3 +33,6 @@ jobs:
       - id: boot-build-image
         run: |
           ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}
+      - id: dump-threads
+        uses: ./.github/actions/print-jvm-thread-dumps
+        if: cancelled()
