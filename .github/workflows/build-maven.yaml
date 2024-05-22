@@ -32,4 +32,4 @@ jobs:
           ./mvnw clean package
       - id: boot-build-image
         run: |
-          ./mvnw spring-boot:build-image --spring-boot.build-image.imageName ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}
+          ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}
