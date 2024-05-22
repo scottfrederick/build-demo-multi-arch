@@ -7,32 +7,6 @@ env:
   IMAGE_VERSION: ${{ github.sha }}
 
 jobs:
-  build-gradle:
-    name: Build Gradle
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - id: checkout
-        uses: actions/checkout@v4
-      - id: setup-pack
-        uses: buildpacks/github-actions/setup-pack@v5.6.0
-      - id: setup-java
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'liberica'
-          cache: 'gradle'
-      - id: docker-info
-        run: |
-          docker info
-      - id: build-archive
-        run: |
-          ./gradlew clean build
-      - id: boot-build-image
-        run: |
-          ./gradlew bootBuildImage --imageName ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}
   build-maven:
     name: Build Maven
     runs-on: ubuntu-22.04
