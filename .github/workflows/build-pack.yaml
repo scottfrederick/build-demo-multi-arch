@@ -1,0 +1,41 @@
+name: Build with Pack
+on: workflow_dispatch
+
+env:
+  IMAGE_REGISTRY: ghcr.io
+  IMAGE_NAME: scottfrederick/build-demo-multi-arch
+  IMAGE_VERSION: ${{ github.sha }}
+
+jobs:
+  build-gradle:
+    name: Build Pack
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - id: checkout
+        uses: actions/checkout@v4
+      - id: setup-pack
+        uses: buildpacks/github-actions/setup-pack@v5.6.0
+      - id: setup-java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'liberica'
+          cache: 'gradle'
+      - id: docker-info
+        run: |
+          docker info
+      - id: build-archive
+        run: |
+          ./gradlew clean build
+      - id: pack-build-image
+        run: |
+          pack build ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }} \
+            --path ./build/libs/demo-0.0.1.jar \
+            --builder docker.io/paketobuildpacks/builder-jammy-buildpackless-tiny \
+            --buildpack gcr.io/paketo-buildpacks/java \
+            --env BP_JVM_VERSION=21
+
+
