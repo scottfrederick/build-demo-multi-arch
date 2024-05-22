@@ -7,15 +7,12 @@ env:
   IMAGE_VERSION: ${{ github.sha }}
 
 jobs:
-  build:
-    name: Build
+  build-gradle:
+    name: Build Gradle
     runs-on: ubuntu-22.04
     permissions:
       contents: read
       packages: write
-    outputs:
-      image-digest: ${{ steps.image-info.outputs.digest }}
-      image-name: ${{ steps.image-info.outputs.name }}
     steps:
       - id: checkout
         uses: actions/checkout@v4
@@ -27,12 +24,6 @@ jobs:
           java-version: '21'
           distribution: 'liberica'
           cache: 'gradle'
-#      - id: login-docker
-#        uses: docker/login-action@v3
-#        with:
-#          registry: ${{ env.IMAGE_REGISTRY }}
-#          username: ${{ github.actor }}
-#          password: ${{ secrets.GITHUB_TOKEN }}
       - id: docker-info
         run: |
           docker info
@@ -42,19 +33,29 @@ jobs:
       - id: boot-build-image
         run: |
           ./gradlew bootBuildImage --imageName ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}
-#      - id: pack-build-image
-#        run: |
-#          pack build ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }} \
-#            --path ./build/libs/demo-0.0.1.jar \
-#            --builder docker.io/paketobuildpacks/builder-jammy-buildpackless-tiny \
-#            --buildpack gcr.io/paketo-buildpacks/java \
-#            --env BP_JVM_VERSION=21
-#      - id: image-info
-#        run: |
-#          image_reference=$(docker inspect --format='{{index .RepoDigests 0}}' ${REGISTRY}/${IMAGE_NAME}:${VERSION})
-#          echo $image_reference
-#          image_digest=$(echo "$image_reference" | awk -F '@' '{print $2}')
-#          echo $image_digest
-#          echo "IMAGE_DIGEST=${image_digest}" >> $GITHUB_ENV
-#          echo "digest=${image_digest}" >> $GITHUB_OUTPUT
-#          echo "name=${REGISTRY}/${IMAGE_NAME}" >> $GITHUB_OUTPUT
+  build-maven:
+    name: Build Maven
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - id: checkout
+        uses: actions/checkout@v4
+      - id: setup-pack
+        uses: buildpacks/github-actions/setup-pack@v5.6.0
+      - id: setup-java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'liberica'
+          cache: 'gradle'
+      - id: docker-info
+        run: |
+          docker info
+      - id: build-archive
+        run: |
+          ./mvnw clean package
+      - id: boot-build-image
+        run: |
+          ./mvnw spring-boot:build-image --spring-boot.build-image.imageName ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}
