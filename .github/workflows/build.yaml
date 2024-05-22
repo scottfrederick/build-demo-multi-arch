@@ -33,6 +33,9 @@ jobs:
 #          registry: ${{ env.IMAGE_REGISTRY }}
 #          username: ${{ github.actor }}
 #          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: docker-info
+        run: |
+          docker info
       - id: build-archive
         run: |
           ./gradlew clean build
